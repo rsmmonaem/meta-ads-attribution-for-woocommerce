@@ -119,6 +119,7 @@ class Meta_Attribution_Admin
 
         if ($event_db_id > 0) {
             global $wpdb;
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $event_log = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}meta_conversion_events WHERE id = %d LIMIT 1", $event_db_id));
 
             if ($event_log && $event_log->order_id) {

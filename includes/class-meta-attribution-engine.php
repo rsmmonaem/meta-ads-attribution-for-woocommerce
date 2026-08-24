@@ -29,6 +29,7 @@ class Meta_Attribution_Engine
 
         // 1. Resolve or Generate Visitor Cookie (90 Days)
         $cookie_name = 'meta_visitor_id';
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash
         $visitor_id = isset($_COOKIE[$cookie_name]) ? sanitize_text_field(wp_unslash($_COOKIE[$cookie_name])) : '';
 
         if (empty($visitor_id)) {
@@ -59,8 +60,10 @@ class Meta_Attribution_Engine
         $ad_id = isset($_GET['ad_id']) ? sanitize_text_field(wp_unslash($_GET['ad_id'])) : null;
 
         // 3. Resolve Meta Cookies (_fbp, _fbc)
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash
         $fbp = isset($_COOKIE['_fbp']) ? sanitize_text_field(wp_unslash($_COOKIE['_fbp'])) : null;
         if (!$fbp && isset($_SESSION['meta_fbp'])) {
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
             $fbp = sanitize_text_field($_SESSION['meta_fbp']);
         }
         if (!$fbp) {
@@ -68,6 +71,7 @@ class Meta_Attribution_Engine
             $_SESSION['meta_fbp'] = $fbp;
         }
 
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash
         $fbc = isset($_COOKIE['_fbc']) ? sanitize_text_field(wp_unslash($_COOKIE['_fbc'])) : null;
         if ($fbclid && !$fbc) {
             $fbc = 'fb.1.' . time() . '.' . $fbclid;
@@ -76,7 +80,9 @@ class Meta_Attribution_Engine
 
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $landing_page = esc_url_raw(home_url(add_query_arg($_GET, $GLOBALS['wp']->request)));
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash
         $referrer = isset($_SERVER['HTTP_REFERER']) ? esc_url_raw(wp_unslash($_SERVER['HTTP_REFERER'])) : null;
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
         $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field(substr(wp_unslash($_SERVER['HTTP_USER_AGENT']), 0, 500)) : null;
         $ip_address = $this->get_client_ip();
         $user_id = get_current_user_id();
@@ -90,7 +96,7 @@ class Meta_Attribution_Engine
         $is_meta = !empty($fbclid) || in_array(strtolower((string)$utm_source), array('facebook', 'meta', 'instagram', 'ig', 'fb'));
 
         if (!$existing) {
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $wpdb->insert(
                 $wpdb->prefix . 'meta_ad_attributions',
                 array(
@@ -141,7 +147,7 @@ class Meta_Attribution_Engine
                 if ($ad_id) $update_data['ad_id'] = $ad_id;
             }
 
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $wpdb->update($wpdb->prefix . 'meta_ad_attributions', $update_data, array('visitor_id' => $visitor_id));
         }
 
@@ -171,11 +177,14 @@ class Meta_Attribution_Engine
     {
         $ip = '';
         if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash
             $ip = sanitize_text_field(wp_unslash($_SERVER['HTTP_CLIENT_IP']));
         } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
             $raw_ip = sanitize_text_field(wp_unslash($_SERVER['HTTP_X_FORWARDED_FOR']));
             $ip = sanitize_text_field(explode(',', $raw_ip)[0]);
         } elseif (!empty($_SERVER['REMOTE_ADDR'])) {
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash
             $ip = sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR']));
         }
         return $ip;

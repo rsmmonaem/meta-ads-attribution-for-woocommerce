@@ -36,6 +36,7 @@ class Meta_CAPI_Service
         global $wpdb;
 
         // 1. Check Idempotency (Skip if already sent successfully)
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $existing = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}meta_conversion_events WHERE event_id = %s LIMIT 1", $event_id));
         if ($existing && $existing->status === 'sent') {
             return array('success' => true, 'status' => 'already_sent', 'event_id' => $event_id);
@@ -64,6 +65,7 @@ class Meta_CAPI_Service
 
         // Log pending event record
         if (!$existing) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $wpdb->insert(
                 $wpdb->prefix . 'meta_conversion_events',
                 array(
@@ -80,6 +82,7 @@ class Meta_CAPI_Service
                 )
             );
         } else {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $wpdb->update(
                 $wpdb->prefix . 'meta_conversion_events',
                 array(
@@ -101,6 +104,7 @@ class Meta_CAPI_Service
 
         if (is_wp_error($response)) {
             $error_msg = $response->get_error_message();
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $wpdb->update(
                 $wpdb->prefix . 'meta_conversion_events',
                 array('status' => 'failed', 'http_status' => 500, 'error_message' => $error_msg),
@@ -113,6 +117,7 @@ class Meta_CAPI_Service
         $response_body = json_decode(wp_remote_retrieve_body($response), true);
 
         if ($http_code >= 200 && $http_code < 300) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $wpdb->update(
                 $wpdb->prefix . 'meta_conversion_events',
                 array(
@@ -127,6 +132,7 @@ class Meta_CAPI_Service
             return array('success' => true, 'status' => 'sent', 'http_status' => $http_code, 'event_id' => $event_id, 'meta_response' => $response_body);
         } else {
             $error_msg = isset($response_body['error']['message']) ? $response_body['error']['message'] : wp_remote_retrieve_body($response);
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $wpdb->update(
                 $wpdb->prefix . 'meta_conversion_events',
                 array(
