@@ -37,16 +37,25 @@ class Meta_Attribution_Engine
             $_COOKIE[$cookie_name] = $visitor_id;
         }
 
-        // 2. Extract Query Parameters
+        // 2. Extract Query Parameters (Public Ad Traffic - Nonce Verification Excluded)
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $fbclid = isset($_GET['fbclid']) ? sanitize_text_field(wp_unslash($_GET['fbclid'])) : null;
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $utm_source = isset($_GET['utm_source']) ? sanitize_text_field(wp_unslash($_GET['utm_source'])) : null;
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $utm_medium = isset($_GET['utm_medium']) ? sanitize_text_field(wp_unslash($_GET['utm_medium'])) : null;
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $utm_campaign = isset($_GET['utm_campaign']) ? sanitize_text_field(wp_unslash($_GET['utm_campaign'])) : null;
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $utm_term = isset($_GET['utm_term']) ? sanitize_text_field(wp_unslash($_GET['utm_term'])) : null;
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $utm_content = isset($_GET['utm_content']) ? sanitize_text_field(wp_unslash($_GET['utm_content'])) : null;
 
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $campaign_id = isset($_GET['campaign_id']) ? sanitize_text_field(wp_unslash($_GET['campaign_id'])) : (isset($_GET['ad_campaign_id']) ? sanitize_text_field(wp_unslash($_GET['ad_campaign_id'])) : null);
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $adset_id = isset($_GET['adset_id']) ? sanitize_text_field(wp_unslash($_GET['adset_id'])) : null;
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $ad_id = isset($_GET['ad_id']) ? sanitize_text_field(wp_unslash($_GET['ad_id'])) : null;
 
         // 3. Resolve Meta Cookies (_fbp, _fbc)
@@ -65,6 +74,7 @@ class Meta_Attribution_Engine
             $_SESSION['meta_fbc'] = $fbc;
         }
 
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         $landing_page = esc_url_raw(home_url(add_query_arg($_GET, $GLOBALS['wp']->request)));
         $referrer = isset($_SERVER['HTTP_REFERER']) ? esc_url_raw(wp_unslash($_SERVER['HTTP_REFERER'])) : null;
         $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field(substr(wp_unslash($_SERVER['HTTP_USER_AGENT']), 0, 500)) : null;
@@ -75,10 +85,12 @@ class Meta_Attribution_Engine
         $now = current_time('mysql');
 
         // 4. Find or Create Attribution Record
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $existing = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}meta_ad_attributions WHERE visitor_id = %s LIMIT 1", $visitor_id));
         $is_meta = !empty($fbclid) || in_array(strtolower((string)$utm_source), array('facebook', 'meta', 'instagram', 'ig', 'fb'));
 
         if (!$existing) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
             $wpdb->insert(
                 $wpdb->prefix . 'meta_ad_attributions',
                 array(
@@ -129,10 +141,12 @@ class Meta_Attribution_Engine
                 if ($ad_id) $update_data['ad_id'] = $ad_id;
             }
 
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
             $wpdb->update($wpdb->prefix . 'meta_ad_attributions', $update_data, array('visitor_id' => $visitor_id));
         }
 
         // 5. Log Tracking Session
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $wpdb->insert(
             $wpdb->prefix . 'meta_tracking_sessions',
             array(
