@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class WooCommerce_Meta_Integration
+class Meta_Attribution_WooCommerce_Integration
 {
     private static $instance = null;
 
@@ -27,7 +27,7 @@ class WooCommerce_Meta_Integration
         $order = wc_get_order($order_id);
         if (!$order) return;
 
-        $visitor_id = isset($_COOKIE['meta_visitor_id']) ? sanitize_text_field($_COOKIE['meta_visitor_id']) : '';
+        $visitor_id = isset($_COOKIE['meta_visitor_id']) ? sanitize_text_field(wp_unslash($_COOKIE['meta_visitor_id'])) : '';
 
         global $wpdb;
         $attribution = null;
@@ -57,9 +57,8 @@ class WooCommerce_Meta_Integration
         $order->save();
 
         // Create Order Attribution Database Record
-        $table_order_attributions = $wpdb->prefix . 'meta_order_attributions';
         $wpdb->replace(
-            $table_order_attributions,
+            $wpdb->prefix . 'meta_order_attributions',
             array(
                 'order_id' => $order_id,
                 'order_number' => $order->get_order_number(),
@@ -95,8 +94,7 @@ class WooCommerce_Meta_Integration
 
         if (strtolower($new_status) === strtolower($qualified_status)) {
             global $wpdb;
-            $table_order_attributions = $wpdb->prefix . 'meta_order_attributions';
-            $order_attr = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$table_order_attributions} WHERE order_id = %d LIMIT 1", $order_id));
+            $order_attr = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}meta_order_attributions WHERE order_id = %d LIMIT 1", $order_id));
 
             $is_meta = $order_attr && (
                 $order_attr->attribution_source === 'facebook' ||

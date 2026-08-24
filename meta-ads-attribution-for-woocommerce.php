@@ -6,7 +6,7 @@
  * Version:           1.0.0
  * Author:            RsmMonaem
  * Author URI:        https://github.com/rsmmonaem
- * Text Domain:       meta-ads-attribution-for-woocommerce
+ * Text Domain:       meta-ads-attribution-delivered-conversions-for-woocommerce
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Requires at least: 5.8
@@ -35,10 +35,10 @@ require_once META_ATTRIBUTION_WC_PATH . 'includes/admin/class-meta-attribution-a
 register_activation_hook(__FILE__, array('Meta_Attribution_Activator', 'activate'));
 
 // Initialize Core Plugin Services
-function run_meta_ads_attribution_wc() {
+function meta_ads_attribution_init() {
     Meta_Attribution_Engine::get_instance();
     Meta_Pixel_Renderer::get_instance();
-    WooCommerce_Meta_Integration::get_instance();
+    Meta_Attribution_WooCommerce_Integration::get_instance();
     Meta_Attribution_Admin::get_instance();
 }
-add_action('plugins_loaded', 'run_meta_ads_attribution_wc');
+add_action('plugins_loaded', 'meta_ads_attribution_init');

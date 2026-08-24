@@ -115,23 +115,22 @@ class Meta_Attribution_Admin
 
         check_admin_referer('meta_retry_event_action', 'meta_retry_nonce');
 
-        $event_db_id = isset($_POST['event_db_id']) ? intval($_POST['event_db_id']) : 0;
+        $event_db_id = isset($_POST['event_db_id']) ? intval(wp_unslash($_POST['event_db_id'])) : 0;
 
         if ($event_db_id > 0) {
             global $wpdb;
-            $table_events = $wpdb->prefix . 'meta_conversion_events';
-            $event_log = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$table_events} WHERE id = %d LIMIT 1", $event_db_id));
+            $event_log = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}meta_conversion_events WHERE id = %d LIMIT 1", $event_db_id));
 
             if ($event_log && $event_log->order_id) {
                 $result = Meta_CAPI_Service::get_instance()->send_delivered_purchase($event_log->order_id);
                 if ($result['success']) {
-                    wp_redirect(add_query_arg(array('page' => 'meta-ads-attribution', 'meta_notice' => 'retry_success'), admin_url('admin.php')));
+                    wp_safe_redirect(add_query_arg(array('page' => 'meta-ads-attribution', 'meta_notice' => 'retry_success'), admin_url('admin.php')));
                     exit;
                 }
             }
         }
 
-        wp_redirect(add_query_arg(array('page' => 'meta-ads-attribution', 'meta_notice' => 'retry_failed'), admin_url('admin.php')));
+        wp_safe_redirect(add_query_arg(array('page' => 'meta-ads-attribution', 'meta_notice' => 'retry_failed'), admin_url('admin.php')));
         exit;
     }
 }

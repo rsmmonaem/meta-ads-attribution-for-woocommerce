@@ -34,7 +34,6 @@ class Meta_CAPI_Service
         $event_source_url = $event_source_url ? $event_source_url : home_url();
 
         global $wpdb;
-        $table_events = $wpdb->prefix . 'meta_conversion_events';
 
         // 1. Check Idempotency (Skip if already sent successfully)
         $existing = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}meta_conversion_events WHERE event_id = %s LIMIT 1", $event_id));
@@ -66,7 +65,7 @@ class Meta_CAPI_Service
         // Log pending event record
         if (!$existing) {
             $wpdb->insert(
-                $table_events,
+                $wpdb->prefix . 'meta_conversion_events',
                 array(
                     'order_id' => $order_id,
                     'event_id' => $event_id,
@@ -82,7 +81,7 @@ class Meta_CAPI_Service
             );
         } else {
             $wpdb->update(
-                $table_events,
+                $wpdb->prefix . 'meta_conversion_events',
                 array(
                     'last_attempt_at' => current_time('mysql'),
                     'retry_count' => intval($existing->retry_count) + 1,
@@ -103,7 +102,7 @@ class Meta_CAPI_Service
         if (is_wp_error($response)) {
             $error_msg = $response->get_error_message();
             $wpdb->update(
-                $table_events,
+                $wpdb->prefix . 'meta_conversion_events',
                 array('status' => 'failed', 'http_status' => 500, 'error_message' => $error_msg),
                 array('event_id' => $event_id)
             );
@@ -115,7 +114,7 @@ class Meta_CAPI_Service
 
         if ($http_code >= 200 && $http_code < 300) {
             $wpdb->update(
-                $table_events,
+                $wpdb->prefix . 'meta_conversion_events',
                 array(
                     'status' => 'sent',
                     'http_status' => $http_code,
@@ -129,7 +128,7 @@ class Meta_CAPI_Service
         } else {
             $error_msg = isset($response_body['error']['message']) ? $response_body['error']['message'] : wp_remote_retrieve_body($response);
             $wpdb->update(
-                $table_events,
+                $wpdb->prefix . 'meta_conversion_events',
                 array(
                     'status' => 'failed',
                     'http_status' => $http_code,

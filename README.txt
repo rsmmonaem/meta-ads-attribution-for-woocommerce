@@ -1,6 +1,6 @@
 === Meta Ads Attribution & Delivered Conversions for WooCommerce ===
 Contributors: RsmMonaem
-Tags: woocommerce, meta, facebook, facebook-pixel, conversions-api, capi, attribution, fbclid, utm-tracking
+Tags: woocommerce, meta, facebook, conversions-api, attribution
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
@@ -9,7 +9,7 @@ Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Production-ready Meta/Facebook Ads attribution, customer journey tracking, order attribution, and qualified DELIVERED order Conversions API (CAPI) plugin for WooCommerce.
+Production-ready Meta/Facebook Ads attribution, order tracking, and delivered Conversions API (CAPI) system for WooCommerce stores.
 
 == Description ==
 

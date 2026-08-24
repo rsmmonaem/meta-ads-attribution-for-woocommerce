@@ -29,7 +29,7 @@ class Meta_Attribution_Engine
 
         // 1. Resolve or Generate Visitor Cookie (90 Days)
         $cookie_name = 'meta_visitor_id';
-        $visitor_id = isset($_COOKIE[$cookie_name]) ? sanitize_text_field($_COOKIE[$cookie_name]) : '';
+        $visitor_id = isset($_COOKIE[$cookie_name]) ? sanitize_text_field(wp_unslash($_COOKIE[$cookie_name])) : '';
 
         if (empty($visitor_id)) {
             $visitor_id = wp_generate_uuid4();
@@ -38,41 +38,40 @@ class Meta_Attribution_Engine
         }
 
         // 2. Extract Query Parameters
-        $fbclid = isset($_GET['fbclid']) ? sanitize_text_field($_GET['fbclid']) : null;
-        $utm_source = isset($_GET['utm_source']) ? sanitize_text_field($_GET['utm_source']) : null;
-        $utm_medium = isset($_GET['utm_medium']) ? sanitize_text_field($_GET['utm_medium']) : null;
-        $utm_campaign = isset($_GET['utm_campaign']) ? sanitize_text_field($_GET['utm_campaign']) : null;
-        $utm_term = isset($_GET['utm_term']) ? sanitize_text_field($_GET['utm_term']) : null;
-        $utm_content = isset($_GET['utm_content']) ? sanitize_text_field($_GET['utm_content']) : null;
+        $fbclid = isset($_GET['fbclid']) ? sanitize_text_field(wp_unslash($_GET['fbclid'])) : null;
+        $utm_source = isset($_GET['utm_source']) ? sanitize_text_field(wp_unslash($_GET['utm_source'])) : null;
+        $utm_medium = isset($_GET['utm_medium']) ? sanitize_text_field(wp_unslash($_GET['utm_medium'])) : null;
+        $utm_campaign = isset($_GET['utm_campaign']) ? sanitize_text_field(wp_unslash($_GET['utm_campaign'])) : null;
+        $utm_term = isset($_GET['utm_term']) ? sanitize_text_field(wp_unslash($_GET['utm_term'])) : null;
+        $utm_content = isset($_GET['utm_content']) ? sanitize_text_field(wp_unslash($_GET['utm_content'])) : null;
 
-        $campaign_id = isset($_GET['campaign_id']) ? sanitize_text_field($_GET['campaign_id']) : (isset($_GET['ad_campaign_id']) ? sanitize_text_field($_GET['ad_campaign_id']) : null);
-        $adset_id = isset($_GET['adset_id']) ? sanitize_text_field($_GET['adset_id']) : null;
-        $ad_id = isset($_GET['ad_id']) ? sanitize_text_field($_GET['ad_id']) : null;
+        $campaign_id = isset($_GET['campaign_id']) ? sanitize_text_field(wp_unslash($_GET['campaign_id'])) : (isset($_GET['ad_campaign_id']) ? sanitize_text_field(wp_unslash($_GET['ad_campaign_id'])) : null);
+        $adset_id = isset($_GET['adset_id']) ? sanitize_text_field(wp_unslash($_GET['adset_id'])) : null;
+        $ad_id = isset($_GET['ad_id']) ? sanitize_text_field(wp_unslash($_GET['ad_id'])) : null;
 
         // 3. Resolve Meta Cookies (_fbp, _fbc)
-        $fbp = isset($_COOKIE['_fbp']) ? sanitize_text_field($_COOKIE['_fbp']) : null;
+        $fbp = isset($_COOKIE['_fbp']) ? sanitize_text_field(wp_unslash($_COOKIE['_fbp'])) : null;
         if (!$fbp && isset($_SESSION['meta_fbp'])) {
-            $fbp = $_SESSION['meta_fbp'];
+            $fbp = sanitize_text_field($_SESSION['meta_fbp']);
         }
         if (!$fbp) {
-            $fbp = 'fb.1.' . time() . '.' . rand(100000000, 999999999);
+            $fbp = 'fb.1.' . time() . '.' . wp_rand(100000000, 999999999);
             $_SESSION['meta_fbp'] = $fbp;
         }
 
-        $fbc = isset($_COOKIE['_fbc']) ? sanitize_text_field($_COOKIE['_fbc']) : null;
+        $fbc = isset($_COOKIE['_fbc']) ? sanitize_text_field(wp_unslash($_COOKIE['_fbc'])) : null;
         if ($fbclid && !$fbc) {
             $fbc = 'fb.1.' . time() . '.' . $fbclid;
             $_SESSION['meta_fbc'] = $fbc;
         }
 
         $landing_page = esc_url_raw(home_url(add_query_arg($_GET, $GLOBALS['wp']->request)));
-        $referrer = isset($_SERVER['HTTP_REFERER']) ? esc_url_raw($_SERVER['HTTP_REFERER']) : null;
-        $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field(substr($_SERVER['HTTP_USER_AGENT'], 0, 500)) : null;
+        $referrer = isset($_SERVER['HTTP_REFERER']) ? esc_url_raw(wp_unslash($_SERVER['HTTP_REFERER'])) : null;
+        $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field(substr(wp_unslash($_SERVER['HTTP_USER_AGENT']), 0, 500)) : null;
         $ip_address = $this->get_client_ip();
         $user_id = get_current_user_id();
 
         global $wpdb;
-        $table_ad_attributions = $wpdb->prefix . 'meta_ad_attributions';
         $now = current_time('mysql');
 
         // 4. Find or Create Attribution Record
@@ -81,7 +80,7 @@ class Meta_Attribution_Engine
 
         if (!$existing) {
             $wpdb->insert(
-                $table_ad_attributions,
+                $wpdb->prefix . 'meta_ad_attributions',
                 array(
                     'visitor_id' => $visitor_id,
                     'user_id' => $user_id ? $user_id : null,
@@ -130,13 +129,12 @@ class Meta_Attribution_Engine
                 if ($ad_id) $update_data['ad_id'] = $ad_id;
             }
 
-            $wpdb->update($table_ad_attributions, $update_data, array('visitor_id' => $visitor_id));
+            $wpdb->update($wpdb->prefix . 'meta_ad_attributions', $update_data, array('visitor_id' => $visitor_id));
         }
 
         // 5. Log Tracking Session
-        $table_sessions = $wpdb->prefix . 'meta_tracking_sessions';
         $wpdb->insert(
-            $table_sessions,
+            $wpdb->prefix . 'meta_tracking_sessions',
             array(
                 'session_id' => session_id() ? session_id() : wp_generate_password(16, false),
                 'visitor_id' => $visitor_id,
@@ -159,11 +157,12 @@ class Meta_Attribution_Engine
     {
         $ip = '';
         if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-            $ip = sanitize_text_field($_SERVER['HTTP_CLIENT_IP']);
+            $ip = sanitize_text_field(wp_unslash($_SERVER['HTTP_CLIENT_IP']));
         } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            $ip = sanitize_text_field(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
+            $raw_ip = sanitize_text_field(wp_unslash($_SERVER['HTTP_X_FORWARDED_FOR']));
+            $ip = sanitize_text_field(explode(',', $raw_ip)[0]);
         } elseif (!empty($_SERVER['REMOTE_ADDR'])) {
-            $ip = sanitize_text_field($_SERVER['REMOTE_ADDR']);
+            $ip = sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR']));
         }
         return $ip;
     }
