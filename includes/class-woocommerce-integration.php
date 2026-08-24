@@ -30,15 +30,14 @@ class WooCommerce_Meta_Integration
         $visitor_id = isset($_COOKIE['meta_visitor_id']) ? sanitize_text_field($_COOKIE['meta_visitor_id']) : '';
 
         global $wpdb;
-        $table_ad_attributions = $wpdb->prefix . 'meta_ad_attributions';
         $attribution = null;
 
         if ($visitor_id) {
-            $attribution = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_ad_attributions WHERE visitor_id = %s LIMIT 1", $visitor_id));
+            $attribution = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}meta_ad_attributions WHERE visitor_id = %s LIMIT 1", $visitor_id));
         }
 
         if (!$attribution && get_current_user_id()) {
-            $attribution = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_ad_attributions WHERE user_id = %d ORDER BY id DESC LIMIT 1", get_current_user_id()));
+            $attribution = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}meta_ad_attributions WHERE user_id = %d ORDER BY id DESC LIMIT 1", get_current_user_id()));
         }
 
         $source = 'direct';
@@ -97,7 +96,7 @@ class WooCommerce_Meta_Integration
         if (strtolower($new_status) === strtolower($qualified_status)) {
             global $wpdb;
             $table_order_attributions = $wpdb->prefix . 'meta_order_attributions';
-            $order_attr = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_order_attributions WHERE order_id = %d LIMIT 1", $order_id));
+            $order_attr = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$table_order_attributions} WHERE order_id = %d LIMIT 1", $order_id));
 
             $is_meta = $order_attr && (
                 $order_attr->attribution_source === 'facebook' ||

@@ -76,7 +76,7 @@ class Meta_Attribution_Engine
         $now = current_time('mysql');
 
         // 4. Find or Create Attribution Record
-        $existing = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_ad_attributions WHERE visitor_id = %s LIMIT 1", $visitor_id));
+        $existing = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}meta_ad_attributions WHERE visitor_id = %s LIMIT 1", $visitor_id));
         $is_meta = !empty($fbclid) || in_array(strtolower((string)$utm_source), array('facebook', 'meta', 'instagram', 'ig', 'fb'));
 
         if (!$existing) {

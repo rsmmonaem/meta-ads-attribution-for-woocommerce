@@ -56,14 +56,45 @@ class Meta_Attribution_Admin
 
     public function register_settings()
     {
-        register_setting('meta_attribution_settings_group', 'meta_attribution_enabled');
-        register_setting('meta_attribution_settings_group', 'meta_enable_browser_pixel');
-        register_setting('meta_attribution_settings_group', 'meta_enable_capi');
-        register_setting('meta_attribution_settings_group', 'meta_pixel_id');
-        register_setting('meta_attribution_settings_group', 'meta_access_token');
-        register_setting('meta_attribution_settings_group', 'meta_test_event_code');
-        register_setting('meta_attribution_settings_group', 'meta_qualified_order_status');
-        register_setting('meta_attribution_settings_group', 'meta_attribution_model');
+        $sanitize_text_args = array(
+            'type'              => 'string',
+            'sanitize_callback' => 'sanitize_text_field',
+            'default'           => '',
+        );
+
+        register_setting('meta_attribution_settings_group', 'meta_attribution_enabled', array(
+            'type'              => 'string',
+            'sanitize_callback' => 'sanitize_text_field',
+            'default'           => 'yes',
+        ));
+
+        register_setting('meta_attribution_settings_group', 'meta_enable_browser_pixel', array(
+            'type'              => 'string',
+            'sanitize_callback' => 'sanitize_text_field',
+            'default'           => 'yes',
+        ));
+
+        register_setting('meta_attribution_settings_group', 'meta_enable_capi', array(
+            'type'              => 'string',
+            'sanitize_callback' => 'sanitize_text_field',
+            'default'           => 'yes',
+        ));
+
+        register_setting('meta_attribution_settings_group', 'meta_pixel_id', $sanitize_text_args);
+        register_setting('meta_attribution_settings_group', 'meta_access_token', $sanitize_text_args);
+        register_setting('meta_attribution_settings_group', 'meta_test_event_code', $sanitize_text_args);
+
+        register_setting('meta_attribution_settings_group', 'meta_qualified_order_status', array(
+            'type'              => 'string',
+            'sanitize_callback' => 'sanitize_text_field',
+            'default'           => 'completed',
+        ));
+
+        register_setting('meta_attribution_settings_group', 'meta_attribution_model', array(
+            'type'              => 'string',
+            'sanitize_callback' => 'sanitize_text_field',
+            'default'           => 'first_paid_touch',
+        ));
     }
 
     public function render_dashboard_page()
@@ -89,7 +120,7 @@ class Meta_Attribution_Admin
         if ($event_db_id > 0) {
             global $wpdb;
             $table_events = $wpdb->prefix . 'meta_conversion_events';
-            $event_log = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_events WHERE id = %d LIMIT 1", $event_db_id));
+            $event_log = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$table_events} WHERE id = %d LIMIT 1", $event_db_id));
 
             if ($event_log && $event_log->order_id) {
                 $result = Meta_CAPI_Service::get_instance()->send_delivered_purchase($event_log->order_id);

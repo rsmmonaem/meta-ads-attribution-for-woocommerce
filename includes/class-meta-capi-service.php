@@ -37,7 +37,7 @@ class Meta_CAPI_Service
         $table_events = $wpdb->prefix . 'meta_conversion_events';
 
         // 1. Check Idempotency (Skip if already sent successfully)
-        $existing = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_events WHERE event_id = %s LIMIT 1", $event_id));
+        $existing = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}meta_conversion_events WHERE event_id = %s LIMIT 1", $event_id));
         if ($existing && $existing->status === 'sent') {
             return array('success' => true, 'status' => 'already_sent', 'event_id' => $event_id);
         }
